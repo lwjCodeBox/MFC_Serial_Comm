@@ -12,9 +12,14 @@ private:
 	HANDLE mh_program_state;
 	WJ_ToolBar m_tool_bar;
 
+public:
+	CComboBox m_serial_port_list;
+
 // 생성입니다.
 public:
 	CMFCSerialCommDlg(CWnd* pParent = nullptr);	// 표준 생성자입니다.
+	
+	void OnDropdownComboPortName();
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
@@ -39,4 +44,5 @@ public:
 	afx_msg void OnBnClickedCancel();
 	virtual BOOL PreTranslateMessage(MSG *pMsg);
 	virtual BOOL DestroyWindow();
+	
 };
