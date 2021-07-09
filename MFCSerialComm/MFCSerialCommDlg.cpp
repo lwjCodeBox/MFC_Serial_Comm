@@ -31,6 +31,8 @@ void CMFCSerialCommDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CMFCSerialCommDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDOK, &CMFCSerialCommDlg::OnBnClickedOk)
+	ON_BN_CLICKED(IDCANCEL, &CMFCSerialCommDlg::OnBnClickedCancel)
 END_MESSAGE_MAP()
 
 
@@ -51,6 +53,18 @@ BOOL CMFCSerialCommDlg::OnInitDialog()
 		DestroyWindow();
 		return TRUE;
 	}
+
+	// 대화상자 배경색 변경
+	SetBackgroundColor(RGB(128, 128, 128)); // 87, 111, 156
+
+	m_tool_bar.AddButton(L"파일 열기", 28001);
+	m_tool_bar.AddButton(L"파일 저장", 28002);
+	m_tool_bar.AddButton(L"선택 내용 복사", 28003);
+	m_tool_bar.AddButton(L"선택 내용 지우기", 28004);
+	m_tool_bar.AddButton(L"프로그램 버전", 28005);
+	m_tool_bar.AddButton(L"프로그램 종료", 28006);
+
+	m_tool_bar.CreateToolBar(IDC_TOOL_BAR_RECT, this, 31000); //IDC_TOOL_BAR_RECT은 picture control의 ID 이름.
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -83,6 +97,7 @@ void CMFCSerialCommDlg::OnPaint()
 		CDialogEx::OnPaint();
 	}
 }
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 // 사용자가 최소화된 창을 끄는 동안에 커서가 표시되도록 시스템에서
 //  이 함수를 호출합니다.
@@ -90,4 +105,36 @@ HCURSOR CMFCSerialCommDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+void CMFCSerialCommDlg::OnBnClickedOk()
+{
+	//CDialogEx::OnOK();
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+void CMFCSerialCommDlg::OnBnClickedCancel()
+{
+	CDialogEx::OnCancel();
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+BOOL CMFCSerialCommDlg::DestroyWindow()
+{
+
+	return CDialogEx::DestroyWindow();
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+BOOL CMFCSerialCommDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN) {
+		if (pMsg->wParam == VK_ESCAPE)
+		{
+			return true; // true면 동작을 안먹게 함. false면 동작을 먹게 함.
+		}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
