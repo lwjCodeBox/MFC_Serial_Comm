@@ -34,6 +34,8 @@ BEGIN_MESSAGE_MAP(CMFCSerialCommDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDOK, &CMFCSerialCommDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDCANCEL, &CMFCSerialCommDlg::OnBnClickedCancel)
+	ON_BN_CLICKED(IDC_SEARCH, &CMFCSerialCommDlg::OnBnClickedSearch)
+	ON_COMMAND(28002, OnFileSave)
 END_MESSAGE_MAP()
 
 
@@ -146,95 +148,58 @@ BOOL CMFCSerialCommDlg::PreTranslateMessage(MSG *pMsg)
 void CMFCSerialCommDlg::OnDropdownComboPortName()
 {
 	HKEY  hSerialCom;
-	TCHAR buffer[_MAX_PATH];
-	char data[_MAX_PATH];
-	DWORD len, type, dataSize;
-	long  i;
-	
-	// http://littletrue.egloos.com/4294013
-	if ( RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DEVICEMAP\\SERIALCOMM", 0L, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &hSerialCom)
-		== ERROR_SUCCESS )
-	{
-		/*for (i = 0, len = dataSize = _MAX_PATH; 
+
+	LONG reg = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DEVICEMAP\\SERIALCOMM", 0L, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &hSerialCom);
+	if (reg == ERROR_SUCCESS) {
+		wchar_t buffer[MAX_PATH];
+		wchar_t data[MAX_PATH];
+		DWORD len, dataSize;
+		long  index;
+
+		index = 0, len = dataSize = MAX_PATH;
+
+		for (;
 			::RegEnumValue(hSerialCom,
-				i,
+				index,
 				buffer,
 				&len,
 				NULL,
-				&type,
+				NULL,
 				(unsigned char *)data,
-				&dataSize) == ERROR_SUCCESS; i++, len = dataSize = _MAX_PATH)
+				&dataSize) == ERROR_SUCCESS;
+			index++)
 		{
+			len = dataSize = MAX_PATH;
 			data[dataSize - 1] = NULL;
-			if (strncmp(data, "COM", 3) == 0)
-				m_serial_port_list.AddString(CString(data));
-		}*/
-		
-		m_serial_port_list.AddString(L"com1");
-		m_serial_port_list.AddString(L"com2");
+
+			if (wcsncmp(data, L"COM", 3) == 0)
+				m_serial_port_list.AddString(data);
+		}
+
 		m_serial_port_list.SetCurSel(0);
 
-		// 오픈한 키를 닫는다.
-		RegCloseKey(hSerialCom);
-	} 
-	else {
-		MessageBox(L"키 열기 실패");
-	}
-
+		::RegCloseKey(hSerialCom); 
+	}	
 }
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-// https://poorman.tistory.com/41
-//void SerialDlg::OnDropdownComboPortName()
-//{
-//	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-//	HKEY hKey;
-//	CString lpSubKey = _T("HARDWARE\\DEVICEMAP\\SERIALCOMM");
-//	//HKEY_LOCAL_MACHINE\HARDWARE\DEVICEMAP\SERIALCOMM에 시리얼포트 번호들이 등록되어 있음.  
-//	RegOpenKey(HKEY_LOCAL_MACHINE, lpSubKey, &hKey);
-//	TCHAR szData[100], szName[100];
-//	DWORD index = 0, dwSize = 100, dwSize2 = 100, dwType = REG_SZ;
-//	memset(szData, 0x00, sizeof(szData));
-//	memset(szName, 0x00, sizeof(szName));
-//
-//	// reset content of combobox
-//	m_combo_port_num.ResetContent();
-//
-//	//hKey - 레지스터키 핸들  
-//	//index - 값을 가져올 인덱스.. 다수의 값이 있을 경우 필요  
-//	//szName - 항목값이 저장될 배열  
-//	//dwSize - 배열의 크기  
-//	while (ERROR_SUCCESS == RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL))
-//	{
-//		index++;
-//
-//		//szName-레지터스터 항목의 이름  
-//		//dwType-항목의 타입, 여기에서는 널로 끝나는 문자열  
-//		//szData-항목값이 저장될 배열  
-//		//dwSize2-배열의 크기
-//		RegQueryValueEx(hKey, szName, NULL, &dwType, (LPBYTE)szData, &dwSize2);
-//
-//		//Port Number
-//		m_iSerialPort = pDisplayUnitTesterDlg->toIdxComPort(CString(szData));
-//		// 포트가 닫혀 있을 경우에만 포트를 열기 위해
-//		if (m_ComuPort.m_bConnected == FALSE)
-//		{
-//			if (m_ComuPort.OpenPort(pDisplayUnitTesterDlg->byIndexComPort(m_iSerialPort), pDisplayUnitTesterDlg->byIndexBaud(m_iBaudRate), pDisplayUnitTesterDlg->byIndexData(m_iDataBit), pDisplayUnitTesterDlg->byIndexStop(m_iStopBit), pDisplayUnitTesterDlg->byIndexParity(m_iParity)) == TRUE)
-//			{
-//				// 포트를 여는데 성공했다면
-//				if (m_ComuPort.m_bConnected == TRUE)
-//				{
-//					m_combo_port_num.AddString(CString(szData));
-//					m_ComuPort.ClosePort();
-//				}
-//			}
-//		}
-//
-//
-//		memset(szData, 0x00, sizeof(szData));
-//		memset(szName, 0x00, sizeof(szName));
-//		dwSize = 100;
-//		dwSize2 = 100;
-//	}
-//	RegCloseKey(hKey);
-//	m_combo_port_num.SetCurSel(0);	//combo box select content
-//}
+void CMFCSerialCommDlg::OnBnClickedSearch()
+{
+	m_serial_port_list.ResetContent();
+	OnDropdownComboPortName();
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+BOOL CMFCSerialCommDlg::OnCommand(WPARAM wParam, LPARAM lParam)
+{
+	if (wParam == 28001) AfxMessageBox(L"[파일 열기]가 눌러졌습니다!");
+
+	return CDialogEx::OnCommand(wParam, lParam);
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+void CMFCSerialCommDlg::OnFileSave()
+{
+	AfxMessageBox(L"[파일 저장]이 눌러졌습니다!");
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

@@ -34,8 +34,13 @@ private:
 	CRect m_rect;  // 툴바의 영역 좌표
 	CFont m_tool_font;  // 툴바에서 사용할 글꼴
 	ToolBar_CommandData m_btn_list[MAX_COMMAND_COUNT];   // 툴바의 버튼 정보
+	
 	// 툴바에 추가된 버튼의 갯수와 선택된 버튼의 위치
 	int m_btn_count = 0, m_select_index = -1;
+
+	// 마우스 클릭 여부 (0:클릭안됨, 1:클릭됨, 2:클릭되었지만 버튼 밖에 있음)
+	char m_clicked_flag = 0;
+	CRect m_select_rect;  // 클릭된 버튼의 영역 정보
 
 public:
 	WJ_ToolBar();
@@ -47,6 +52,12 @@ public:
 	void AddButton(const wchar_t *ap_name, int a_command_id);
 	// 등록된 버튼 정보를 사용해서 버튼이 위치할 정보를 구성한다.
 	void UpdateButtonInfo();
+	// 마우스가 위치한 곳에 버튼을 표시하는 함수
+	void CheckButtonInToolBar(CPoint point);
+	// 버튼이 눌러진 상태를 출력할 함수
+	void DrawPushButton(ToolBar_CommandData *ap_btn);
+	// 버튼이 눌러졌다가 해제된 상태를 출력할 함수
+	void DrawPopButton(ToolBar_CommandData *ap_btn);
 
 protected:
 	DECLARE_MESSAGE_MAP()

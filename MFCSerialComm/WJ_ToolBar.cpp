@@ -149,9 +149,64 @@ void WJ_ToolBar::OnDestroy()
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+void WJ_ToolBar::DrawPushButton(ToolBar_CommandData *ap_btn)
+{
+	CClientDC dc(this);
+
+	dc.SelectObject(&m_tool_font);  // 글꼴 설정
+	dc.SetBkMode(TRANSPARENT);  // 문자열의 배경은 투명하게 처리한다.
+
+	dc.SelectStockObject(DC_BRUSH);  // 색상만 변경해서 사용하는 Brush 설정
+	dc.SelectStockObject(DC_PEN);   // 색상만 변경해서 사용하는 Pen 설정
+
+	dc.SetDCBrushColor(RGB(255, 247, 157));  // 버튼의 배경색 설정
+	dc.SetDCPenColor(RGB(50, 50, 50));   // 버튼의 테두리 색상 설정
+
+	dc.Rectangle(m_select_rect);  // 버튼을 그린다.
+
+	dc.SetTextColor(RGB(0, 0, 0));  // 문자열은 흰색으로 출력
+	// 버튼을 그리면서 버튼의 이름이 지웠졌으니 버튼의 이름을 출력한다.
+	dc.DrawText(ap_btn->p_name, m_select_rect + CPoint(1, 1), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+void WJ_ToolBar::DrawPopButton(ToolBar_CommandData *ap_btn)
+{
+	CClientDC dc(this);
+
+	dc.SelectObject(&m_tool_font);  // 글꼴 설정
+	dc.SetBkMode(TRANSPARENT);  // 문자열의 배경은 투명하게 처리한다.
+
+	dc.SelectStockObject(DC_BRUSH);  // 색상만 변경해서 사용하는 Brush 설정
+	dc.SelectStockObject(DC_PEN);   // 색상만 변경해서 사용하는 Pen 설정
+
+	dc.SetDCBrushColor(TOOL_BAR_BK_COLOR);  // 툴바의 배경색 설정
+	dc.SetDCPenColor(TOOL_BAR_BK_COLOR);   // 버튼의 테두리 색상 설정
+
+	dc.Rectangle(m_select_rect);  // 기본 버튼을 출력한다.
+
+	// 흰색으로 버튼의 문자열을 출력한다.	
+	dc.SetTextColor(RGB(255, 255, 255));
+	dc.DrawText(ap_btn->p_name, m_select_rect - CPoint(1, 1), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	// 음영 넣기 위한 코드
+	// 어두운 하늘색으로 버튼의 문자열을 출력한다.	
+	//dc.SetTextColor(RGB(0, 100, 200));
+	//dc.DrawText(ap_btn->p_name, m_select_rect - CPoint(1, 1), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
 void WJ_ToolBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if (!m_clicked_flag && m_select_index != -1) {  // 마우스가 클릭된 상태가 아닌 경우에만 처리!
+		m_clicked_flag = 1;  // 마우스가 클릭됨
+		ToolBar_CommandData *p_btn = m_btn_list + m_select_index;  // 선택된 버튼의 정보
+		// 선택된 버튼의 영역 정보를 구성한다.
+		m_select_rect.SetRect(p_btn->x + 4, 4, p_btn->x + p_btn->width - 4, m_rect.bottom - 4);
+		// 버튼이 눌러진 모습을 출력한다.
+		DrawPushButton(p_btn);
+		// 마우스가 툴바 영역을 벗어나더라도 마우스 메시지를 받도록 설정한다.
+		SetCapture();
+	}
 
 	CWnd::OnLButtonDown(nFlags, point);
 }
@@ -159,13 +214,26 @@ void WJ_ToolBar::OnLButtonDown(UINT nFlags, CPoint point)
 
 void WJ_ToolBar::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if (m_clicked_flag) {  // 마우스가 클릭된 상태라면 처리한다.
+		m_clicked_flag = 0;  // 마우스 클릭이 해제되었다고 설정
+		ReleaseCapture();  // SetCapture 상태를 해제한다.
+
+		ToolBar_CommandData *p_btn = m_btn_list + m_select_index;  // 선택된 버튼의 정보
+		DrawPopButton(p_btn);  // 버튼이 눌러졌던 형태를 기존 형태로 복구한다.
+
+		if (m_select_rect.PtInRect(point)) {  // 버튼 영역 내에서 마우스가 해제된 경우!
+			// 부모 윈도우로 이 버튼이 눌러졌음을 WM_COMMAND 메시지로 알린다.
+			GetParent()->PostMessage(WM_COMMAND, MAKEWPARAM(p_btn->command_id, 0), 0);
+			// GetParent()함수 대신 SendMessage()함수를 이용해도 됨.
+			// SendMessage()함수는 보내고 기다린다면 PostMessage()함수는 보내기만 한다.
+		}
+	}
 
 	CWnd::OnLButtonUp(nFlags, point);
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-void WJ_ToolBar::OnMouseMove(UINT nFlags, CPoint point)
+void WJ_ToolBar::CheckButtonInToolBar(CPoint point)
 {
 	// 툴바에 등록된 첫 번째 버튼의 정보를 가리킨다.
 	ToolBar_CommandData *p_btn = m_btn_list;
@@ -202,13 +270,34 @@ void WJ_ToolBar::OnMouseMove(UINT nFlags, CPoint point)
 		if (m_select_index != -1) {
 			// 새로 선택된 버튼 위치에 선택 상태를 그린다.
 			p_btn = m_btn_list + m_select_index;
-			dc.SetDCPenColor(MOVE_OUTER_BODER_COLOR);   // Pen 색상 설정
+			dc.SetDCPenColor(TOOL_BAR_OUTER_BODER_COLOR);   // Pen 색상 설정
 			dc.Rectangle(p_btn->x + 3, 3, p_btn->x + p_btn->width - 3, m_rect.bottom - 3);
-			dc.SetDCPenColor(MOVE_INNER_BODER_COLOR);   // Pen 색상 설정 
+			dc.SetDCPenColor(TOOL_BAR_INNER_BODER_COLOR);   // Pen 색상 설정
 			dc.Rectangle(p_btn->x + 4, 4, p_btn->x + p_btn->width - 4, m_rect.bottom - 4);
 		}
 	}
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+void WJ_ToolBar::OnMouseMove(UINT nFlags, CPoint point)
+{
+	if (!m_clicked_flag) {  // 마우스가 클릭이 안된 상태
+		CheckButtonInToolBar(point);  // 버튼의 위치만 표시한다.
+	}
+	else {  // 마우스가 클릭된 상태
+		if (m_select_rect.PtInRect(point)) {  // 마우스가 버튼 영역내에 있는 경우!
+			if (m_clicked_flag == 2) {  // 버튼 영역 밖에 있다가 영역으로 들어온 경우!
+				m_clicked_flag = 1;  // 버튼 내부에 있음을 설정
+				DrawPushButton(m_btn_list + m_select_index);  // 버튼을 눌러진 상태로 그린다.
+			}
+		}
+		else {  // 마우스가 버튼 영역 밖에 있는 경우
+			if (m_clicked_flag == 1) {  // 버튼 안에 있다가 버튼 밖으로 나온 경우!
+				m_clicked_flag = 2;  // 마우스가 버튼 외부에 있음을 설정
+				DrawPopButton(m_btn_list + m_select_index);  // 버튼을 기본 형태로 다시 그림
+			}
+		}
+	}
 	CWnd::OnMouseMove(nFlags, point);
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

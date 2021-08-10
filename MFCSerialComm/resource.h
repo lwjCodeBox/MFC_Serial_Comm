@@ -6,7 +6,7 @@
 #define IDR_MAINFRAME                   128
 #define IDC_TOOL_BAR_RECT               1000
 #define IDC_SERIAL_PORT_LIST            1001
-#define IDC_BUTTON1                     1002
+#define IDC_SEARCH                      1002
 
 // Next default values for new objects
 // 

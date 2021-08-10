@@ -44,5 +44,8 @@ public:
 	afx_msg void OnBnClickedCancel();
 	virtual BOOL PreTranslateMessage(MSG *pMsg);
 	virtual BOOL DestroyWindow();
-	
+	afx_msg void OnBnClickedSearch();
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+
+	afx_msg void OnFileSave();
 };
