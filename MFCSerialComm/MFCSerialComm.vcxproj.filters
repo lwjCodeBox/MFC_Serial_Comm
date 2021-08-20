@@ -89,5 +89,8 @@
     <Image Include="config\button_img\bmp_24\bitmap2.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="config\button_img\bmp_24\version_32px.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

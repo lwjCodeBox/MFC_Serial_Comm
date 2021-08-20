@@ -218,6 +218,7 @@
     <Image Include="config\button_img\bmp_24\file_open_32x32.bmp" />
     <Image Include="config\button_img\bmp_24\file_save_32x32.bmp" />
     <Image Include="config\button_img\bmp_24\power_off_32x32.bmp" />
+    <Image Include="config\button_img\bmp_24\version_32px.bmp" />
     <Image Include="res\MFCSerialComm.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
