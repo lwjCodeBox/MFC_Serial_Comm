@@ -210,6 +210,14 @@
     <None Include="res\MFCSerialComm.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="config\button_img\bmp_24\bitmap1.bmp" />
+    <Image Include="config\button_img\bmp_24\bitmap2.bmp" />
+    <Image Include="config\button_img\bmp_24\file_copy_256x256.bmp" />
+    <Image Include="config\button_img\bmp_24\file_copy_32x32.bmp" />
+    <Image Include="config\button_img\bmp_24\file_delete_32x32.bmp" />
+    <Image Include="config\button_img\bmp_24\file_open_32x32.bmp" />
+    <Image Include="config\button_img\bmp_24\file_save_32x32.bmp" />
+    <Image Include="config\button_img\bmp_24\power_off_32x32.bmp" />
     <Image Include="res\MFCSerialComm.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

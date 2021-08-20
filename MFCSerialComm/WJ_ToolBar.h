@@ -25,6 +25,8 @@ struct ToolBar_CommandData {
 	int command_id;
 	int x;  // 버튼의 시작 위치
 	int width;  // 버튼의 폭
+	int bmp_id;  // 버튼에 사용할 비트맵 ID
+	CBitmap *p_bitmap;  // 리소스에 추가된 비트맵을 읽어서 사용할 객체
 };
 
 class WJ_ToolBar : public CWnd
@@ -41,6 +43,7 @@ private:
 	// 마우스 클릭 여부 (0:클릭안됨, 1:클릭됨, 2:클릭되었지만 버튼 밖에 있음)
 	char m_clicked_flag = 0;
 	CRect m_select_rect;  // 클릭된 버튼의 영역 정보
+	CDC m_mem_dc;  // CBitmap 객체에 저장된 이미지를 화면에 출력할 때 사용할 DC
 
 public:
 	WJ_ToolBar();
@@ -49,7 +52,7 @@ public:
 	// 툴바를 생성하는 함수
 	void CreateToolBar(int a_rect_id, CWnd *ap_parent, int a_ctrl_id);
 	// 툴바에 버튼을 추가하는 함수 (CreateToolBar 함수를 호출하기 전에 사용해야 함!!)
-	void AddButton(const wchar_t *ap_name, int a_command_id);
+	void AddButton(const wchar_t *ap_name, int a_command_id, int a_bmp_id = 0);
 	// 등록된 버튼 정보를 사용해서 버튼이 위치할 정보를 구성한다.
 	void UpdateButtonInfo();
 	// 마우스가 위치한 곳에 버튼을 표시하는 함수

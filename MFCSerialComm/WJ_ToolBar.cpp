@@ -58,12 +58,20 @@ void WJ_ToolBar::OnPaint()
 	for (int i = 0; i < m_btn_count; i++, p_btn++) {
 		// 툴바에 등록된 버튼의 위치를 사각형 영역으로 구성한다.
 		r.SetRect(p_btn->x, 3, p_btn->x + p_btn->width, m_rect.bottom - 3);
+
+		if (p_btn->p_bitmap != NULL) {  // 이미지가 로드된 상태라면
+			m_mem_dc.SelectObject(p_btn->p_bitmap);  // 이미지 객체를 메모리 DC 객체에 연결한다.
+			// 메모리 DC에 연결된 비트맵을 화면 DC에 출력한다. (버튼의 x축 방향 가운데 위치시킨다.)
+			dc.BitBlt(p_btn->x + p_btn->width / 2 - 16, 10, 32, 32, &m_mem_dc, 0, 0, SRCCOPY);
+			//dc.TransparentBlt(p_btn->x + p_btn->width / 2 - 16 + 1, 11, 32, 32,	&m_mem_dc, 0, 0, 32, 32, TOOL_BAR_BK_COLOR);
+		}
+
 		// 밝은 색으로 버튼의 문자열을 출력한다.
 		dc.SetTextColor(OUTER_TEXT_COLOR);
-		dc.DrawText(p_btn->p_name, r, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		dc.DrawText(p_btn->p_name, r, DT_CENTER | /*DT_VCENTER*/DT_BOTTOM | DT_SINGLELINE);
 		// 어두운 하늘색으로 버튼의 문자열을 다시 출력한다.
 		dc.SetTextColor(INNER_TEXT_COLOR);
-		dc.DrawText(p_btn->p_name, r - CPoint(1, 1), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		dc.DrawText(p_btn->p_name, r - CPoint(1, 1), DT_CENTER | /*DT_VCENTER*/DT_BOTTOM | DT_SINGLELINE);
 	}
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -85,6 +93,10 @@ int WJ_ToolBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
+
+	CClientDC dc(this);
+	// 버튼에 사용할 비트맵을 출력하기 위해 메모리 DC를 생성한다.
+	m_mem_dc.CreateCompatibleDC(&dc);
 
 	// 툴바 윈도우 클라이언트 전체 영역의 좌표를 얻는다.
 	GetClientRect(m_rect);
@@ -117,35 +129,43 @@ void WJ_ToolBar::UpdateButtonInfo()
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-void WJ_ToolBar::AddButton(const wchar_t *ap_name, int a_command_id)
+void WJ_ToolBar::AddButton(const wchar_t *ap_name, int a_command_id, int a_bmp_id)
 {
 	if (m_btn_count < MAX_COMMAND_COUNT) {
-		// 전달된 이름의 길이를 구한다.
-		int len = wcslen(ap_name);
-		
-		// len은 NULL 문자 포함한 크기로 변경 (len은 후위 증가이기 때문에 len의 값은 +1이 아직 되지않음.)
-		m_btn_list[m_btn_count].name_len = len++;  
-
-		// 이름을 저장할 메모리를 할당한다. (len은 이제 +1을 하게 됨. 그래서 null 문자까지 포함 할수 있는 크기로 변함.)
-		m_btn_list[m_btn_count].p_name = new wchar_t[len];
-		
-		// 이름을 복사한다.
-		memcpy(m_btn_list[m_btn_count].p_name, ap_name, len << 1);
-
+		int len = wcslen(ap_name);  // 전달된 이름의 길이를 구한다.
+		m_btn_list[m_btn_count].name_len = len++;  // len은 NULL 문자 포함한 크기로 변경
+		m_btn_list[m_btn_count].p_name = new wchar_t[len];  // 이름을 저장할 메모리를 할당한다.
+		memcpy(m_btn_list[m_btn_count].p_name, ap_name, len << 1);  // 이름을 복사한다.
 		// 버튼을 눌렀을 때 사용할 메시지 ID를 저장한다.
-		m_btn_list[m_btn_count++].command_id = a_command_id;
+		m_btn_list[m_btn_count].command_id = a_command_id;
+		m_btn_list[m_btn_count].bmp_id = a_bmp_id;
+		if (m_btn_list[m_btn_count].bmp_id) {  // 비트맵 리소스 아이디가 0이 아닌경우
+			// 리소스에 저장된 비트맵을 읽기 위한 객체를 만든다.
+			m_btn_list[m_btn_count].p_bitmap = new CBitmap;
+			// 리소스에서 비트맵을 읽어서 CBitmap 객체에 저장한다.
+			m_btn_list[m_btn_count].p_bitmap->LoadBitmap(a_bmp_id);
+		}
+		else m_btn_list[m_btn_count].p_bitmap = NULL;
+		m_btn_count++;  // 등록된 버튼의 수를 증가시킨다.
 	}
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 void WJ_ToolBar::OnDestroy()
 {
-	CWnd::OnDestroy();
-
 	// 버튼 이름을 저장하기 위해 할당했던 메모리를 제거한다.
-	for (int i = 0; i < m_btn_count; i++) delete[] m_btn_list[i].p_name;
-	// 사용하던 글꼴을 제거한다.
-	m_tool_font.DeleteObject();
+	for (int i = 0; i < m_btn_count; i++) {
+		delete[] m_btn_list[i].p_name;   // 버튼 이름을 저장하던 메모리 해제
+		if (m_btn_list[i].p_bitmap != NULL) {  // 버튼에 비트맵을 사용하는지 체크한다.
+			m_btn_list[i].p_bitmap->DeleteObject();  // 비트맵 정보를 제거한다.
+			delete m_btn_list[i].p_bitmap;  // 비트맵 객체를 제거한다.
+		}
+	}
+
+	m_tool_font.DeleteObject();  // 사용하던 글꼴을 제거한다.
+	m_mem_dc.DeleteDC();  // 메모리를 DC 제거한다.
+
+	CWnd::OnDestroy();
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
@@ -164,9 +184,19 @@ void WJ_ToolBar::DrawPushButton(ToolBar_CommandData *ap_btn)
 
 	dc.Rectangle(m_select_rect);  // 버튼을 그린다.
 
+	CRect r = m_select_rect;
+	r.bottom -= 3;   // 위치 보정!
+	if (ap_btn->p_bitmap != NULL) {  // 이미지가 로드된 상태라면
+		m_mem_dc.SelectObject(ap_btn->p_bitmap);  // 버튼에 사용할 비트맵을 메모리 DC에 연결한다.
+		// dc.BitBlt(ap_btn->x + ap_btn->width/2 - 16, 10, 32, 32, &m_mem_dc, 0, 0, SRCCOPY);
+		// 배경색이 다르기 때문에 배경색을 제외하고 그림을 출력한다.
+		dc.TransparentBlt(ap_btn->x + ap_btn->width / 2 - 16 + 1, 11, 32, 32,
+			&m_mem_dc, 0, 0, 32, 32, TOOL_BAR_BK_COLOR);
+	}
+
 	dc.SetTextColor(RGB(0, 0, 0));  // 문자열은 흰색으로 출력
 	// 버튼을 그리면서 버튼의 이름이 지웠졌으니 버튼의 이름을 출력한다.
-	dc.DrawText(ap_btn->p_name, m_select_rect + CPoint(1, 1), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	dc.DrawText(ap_btn->p_name, m_select_rect + CPoint(1, 1), DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
@@ -185,9 +215,17 @@ void WJ_ToolBar::DrawPopButton(ToolBar_CommandData *ap_btn)
 
 	dc.Rectangle(m_select_rect);  // 기본 버튼을 출력한다.
 
+	CRect r = m_select_rect;
+	r.bottom -= 3;  // 위치 보정
+	if (ap_btn->p_bitmap != NULL) {  // 이미지가 로드된 상태라면
+		m_mem_dc.SelectObject(ap_btn->p_bitmap);  // 이미지 객체를 메모리 DC 객체에 연결한다.
+		// 메모리 DC에 연결된 비트맵을 화면 DC에 출력한다. (버튼의 x축 방향 가운데 위치시킨다.)
+		dc.BitBlt(ap_btn->x + ap_btn->width / 2 - 16, 10, 32, 32, &m_mem_dc, 0, 0, SRCCOPY);
+	}
+
 	// 흰색으로 버튼의 문자열을 출력한다.	
-	dc.SetTextColor(RGB(255, 255, 255));
-	dc.DrawText(ap_btn->p_name, m_select_rect - CPoint(1, 1), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	dc.SetTextColor(INNER_TEXT_COLOR);
+	dc.DrawText(ap_btn->p_name, m_select_rect - CPoint(1, 1), DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
 	// 음영 넣기 위한 코드
 	// 어두운 하늘색으로 버튼의 문자열을 출력한다.	
 	//dc.SetTextColor(RGB(0, 100, 200));
@@ -245,10 +283,11 @@ void WJ_ToolBar::CheckButtonInToolBar(CPoint point)
 		r.SetRect(p_btn->x + 3, 3, p_btn->x + p_btn->width - 3, m_rect.bottom - 3);
 		if (r.PtInRect(point)) {  // point 좌표가 버튼 영역에 위치한 경우
 			m_select_index = i;  // 현재 버튼을 마우스가 위치한 버튼으로 설정한다.
+			
 			break;
 		}
 	}
-
+	
 	// i 값이 m_btn_count 값과 동일하다는 뜻은 툴바에 등록된 버튼 위에
 	// 마우스가 위치하지 않았다는 뜻이다.
 	if (i == m_btn_count) m_select_index = -1;
@@ -264,7 +303,7 @@ void WJ_ToolBar::CheckButtonInToolBar(CPoint point)
 			dc.SetDCPenColor(TOOL_BAR_BK_COLOR);   // Pen 색상 설정
 			// 선택 사각형이 두 줄로 되어있기 때문에 두 줄을 모두 지운다.
 			dc.Rectangle(p_btn->x + 3, 3, p_btn->x + p_btn->width - 3, m_rect.bottom - 3);
-			dc.Rectangle(p_btn->x + 4, 4, p_btn->x + p_btn->width - 4, m_rect.bottom - 4);
+			dc.Rectangle(p_btn->x + 4, 4, p_btn->x + p_btn->width - 4, m_rect.bottom - 4);			
 		}
 
 		if (m_select_index != -1) {

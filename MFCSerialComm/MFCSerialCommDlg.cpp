@@ -60,12 +60,12 @@ BOOL CMFCSerialCommDlg::OnInitDialog()
 	// 대화상자 배경색 변경
 	SetBackgroundColor(RGB(128, 128, 128)); // 87, 111, 156
 
-	m_tool_bar.AddButton(L"파일 열기", 28001);
-	m_tool_bar.AddButton(L"파일 저장", 28002);
-	m_tool_bar.AddButton(L"선택 내용 복사", 28003);
-	m_tool_bar.AddButton(L"선택 내용 지우기", 28004);
+	m_tool_bar.AddButton(L"파일 열기", 28001, IDB_OPEN_DATA);
+	m_tool_bar.AddButton(L"파일 저장", 28002, IDB_SAVE_DATA);
+	m_tool_bar.AddButton(L"선택 내용 복사", 28003, IDB_COPY_DATA);
+	m_tool_bar.AddButton(L"선택 내용 지우기", 28004, IDB_DEL_DATA);
 	m_tool_bar.AddButton(L"프로그램 버전", 28005);
-	m_tool_bar.AddButton(L"프로그램 종료", 28006);
+	m_tool_bar.AddButton(L"프로그램 종료", 28006, IDB_EXIT_APP);
 
 	m_tool_bar.CreateToolBar(IDC_TOOL_BAR_RECT, this, 31000); //IDC_TOOL_BAR_RECT은 picture control의 ID 이름.
 
