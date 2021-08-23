@@ -36,6 +36,9 @@
     <ClInclude Include="WJ_ToolBar.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="WJ_LayoutManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCSerialComm.cpp">
@@ -48,6 +51,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="WJ_ToolBar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="WJ_LayoutManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

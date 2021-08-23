@@ -16,9 +16,8 @@
 // CMFCSerialCommDlg 대화 상자
 
 
-
 CMFCSerialCommDlg::CMFCSerialCommDlg(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_MFCSERIALCOMM_DIALOG, pParent)
+	: CDialogEx(IDD_MFCSERIALCOMM_DIALOG, pParent), m_layout(this)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -36,6 +35,7 @@ BEGIN_MESSAGE_MAP(CMFCSerialCommDlg, CDialogEx)
 	ON_BN_CLICKED(IDCANCEL, &CMFCSerialCommDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_SEARCH, &CMFCSerialCommDlg::OnBnClickedSearch)
 	ON_COMMAND(28002, OnFileSave)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -71,6 +71,8 @@ BOOL CMFCSerialCommDlg::OnInitDialog()
 
 	OnDropdownComboPortName();
 	
+	MakeLayoutInfo();
+
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -201,5 +203,34 @@ BOOL CMFCSerialCommDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 void CMFCSerialCommDlg::OnFileSave()
 {
 	AfxMessageBox(L"[파일 저장]이 눌러졌습니다!");
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+void CMFCSerialCommDlg::MakeLayoutInfo()
+{
+	// 대화 상자를 그룹의 기준 윈도우로 추가한다.
+	LayoutGroupData *p_group = m_layout.AddGroup(m_hWnd);
+	if (p_group) {
+		m_layout.AddItem(p_group, ::GetDlgItem(m_hWnd, IDC_TOOL_BAR_RECT), 0, 0, 2, 0);
+		m_layout.AddItem(p_group, ::GetDlgItem(m_hWnd, IDC_SERIAL_PORT_LIST), 0, 0, 2, 0);
+		m_layout.AddItem(p_group, ::GetDlgItem(m_hWnd, IDC_SEARCH), 2, 0, 1, 0);
+	}
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+void CMFCSerialCommDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	// 최소화 상태가 아닌 경우에만 처리한다.
+	if (nType != SIZE_MINIMIZED) {
+		// 컨트롤의 핸들을 임의로 한 개만 체크해서 컨트롤 생성 여부를 체크
+		if (m_serial_port_list.m_hWnd) {
+			// m_hWnd를 기준으로 하는 그룹에 소속된 컨트롤들은 
+			// 설정한 상태로 재배열된다.
+			m_layout.UpdateGroupPos(m_hWnd);
+			Invalidate(true);
+		}
+	}
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

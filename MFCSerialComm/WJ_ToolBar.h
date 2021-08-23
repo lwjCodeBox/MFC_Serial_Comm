@@ -1,5 +1,7 @@
-#pragma once
+#ifndef __WJ_TOOL_BAR_H__
+#define __WJ_TOOL_BAR_H__
 
+#pragma once
 
 // WJ_ToolBar
 
@@ -73,4 +75,4 @@ public:
 	afx_msg void OnPaint();
 };
 
-
+#endif
